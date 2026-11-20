@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vini AI</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Outfit (Unique & Modern) -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Marked.js & Highlight.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: {
+                        darkBg: '#0a0a0f',
+                        lightBg: '#f8fafc'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { transition: background-color 0.3s, color 0.3s; }
+        
+        /* Aurora Animated Background */
+        .aurora-bg {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; overflow: hidden;
+            background-color: #f8fafc; transition: background-color 0.4s;
+        }
+        .dark .aurora-bg { background-color: #0a0a0f; }
+        
+        .blob {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.5; animation: float 20s infinite alternate;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(99, 102, 241, 0.2); }
+        .blob-2 { bottom: -10%; right: -10%; width: 40vw; height: 40vw; background: rgba(168, 85, 247, 0.2); animation-delay: -10s; }
+        
+        .dark .blob-1 { background: rgba(99, 102, 241, 0.15); }
+        .dark .blob-2 { background: rgba(168, 85, 247, 0.15); }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .dark .glass-panel {
+            background: rgba(15, 15, 20, 0.6);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .dark .glass-input {
+            background: rgba(20, 20, 25, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.6); }
+        
+        /* Markdown Styling */
+        .prose p { margin-bottom: 1rem; line-height: 1.7; }
+        .prose ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+        .prose ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1rem; }
+        .prose pre { background: #0d1117 !important; border: 1px solid #30363d; border-radius: 10px; padding: 14px; margin: 1rem 0; overflow-x: auto; }
+        .prose code { font-family: monospace; font-size: 14px; }
+        
+        /* Mic Animation */
+        .recording { color: #ef4444 !important; animation: pulse-red 1s infinite; }
+        @keyframes pulse-red { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden text-slate-800 dark:text-gray-200 relative">
+
+    <!-- Animated Background -->
+    <div class="aurora-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar (Glassmorphism) -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-[260px] glass-panel flex flex-col h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        
+        <!-- Logo -->
+        <div class="h-14 flex items-center px-4 mt-2">
+            <h1 class="text-[17px] font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-bolt text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-purple-600 text-xl"></i> Vini AI
+            </h1>
+        </div>
+
+        <!-- New Chat Button -->
+        <div class="px-4 py-2">
+            <button onclick="startNewChat()" class="w-full flex items-center justify-between bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-full px-4 py-2 text-sm font-medium transition-all shadow-sm group">
+                <span class="flex items-center gap-2 text-slate-700 dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-white transition-colors"><i class="fa-solid fa-plus text-indigo-500"></i> New chat</span>
+                <i class="fa-solid fa-pen-to-square text-gray-400 group-hover:text-indigo-500 transition-colors text-xs"></i>
+            </button>
+        </div>
+
+        <!-- History List -->
+        <div class="flex-1 overflow-y-auto px-3 py-2" id="chat-history-list">
+            <!-- History injected via JS -->
+        </div>
+
+        <!-- User Profile -->
+        <div class="p-3 border-t border-slate-200/50 dark:border-white/5 flex items-center gap-3 cursor-pointer hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm shadow-md">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="text-sm font-medium text-slate-700 dark:text-gray-200">My Account</div>
+        </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 flex flex-col h-full relative">
+        
+        <!-- Header -->
+        <header class="absolute top-0 w-full h-14 flex items-center justify-between px-4 md:px-6 z-20">
+            <div class="flex items-center">
+                <button onclick="toggleSidebar()" class="md:hidden mr-3 text-slate-500 hover:text-slate-800 dark:text-gray-400 dark:hover:text-white"><i class="fa-solid fa-bars text-lg"></i></button>
+            </div>
+            
+            <button id="theme-toggle" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-500 dark:text-gray-400 transition-colors backdrop-blur-sm">
+                <i class="fa-solid fa-moon hidden dark:block"></i>
+                <i class="fa-solid fa-sun block dark:hidden"></i>
+            </button>
+        </header>
+
+        <!-- Chat Scroll Area -->
+        <div id="chat-box" class="flex-1 overflow-y-auto pt-16 pb-32 px-4 scroll-smooth">
+            
+            <!-- Welcome Screen -->
+            <div class="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto" id="welcome-screen">
+                <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-4 bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 shadow-xl">
+                    <i class="fa-solid fa-bolt text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-purple-600"></i>
+                </div>
+                <h1 class="text-3xl font-bold mb-2 tracking-tight text-slate-800 dark:text-white">Hi, I'm Vini AI.</h1>
+                <p class="text-slate-500 dark:text-gray-400 text-sm">How can I help you today?</p>
+            </div>
+            
+            <!-- Messages Container -->
+            <div id="messages-container" class="max-w-[700px] mx-auto flex flex-col gap-6 w-full"></div>
+        </div>
+
+        <!-- Floating Input Area -->
+        <div class="absolute bottom-0 w-full bg-gradient-to-t from-[#f8fafc] via-[#f8fafc]/90 dark:from-[#0a0a0f] dark:via-[#0a0a0f]/90 to-transparent pt-10 pb-6 px-4">
+            <div class="w-full max-w-[700px] mx-auto relative flex items-end glass-input rounded-3xl shadow-xl focus-within:ring-2 focus-within:ring-indigo-500/30 transition-all duration-300">
+                
+                <input type="file" id="image-input" accept="image/*" class="hidden">
+                <button onclick="document.getElementById('image-input').click()" class="p-3.5 text-slate-400 hover:text-indigo-500 transition-colors">
+                    <i class="fa-regular fa-image text-lg"></i>
+                </button>
+
+                <textarea id="user-input" rows="1" class="w-full bg-transparent py-4 px-1 outline-none resize-none overflow-y-hidden max-h-48 text-[15px] text-slate-800 dark:text-gray-200 placeholder-slate-400 dark:placeholder-gray-500" placeholder="Message Vini AI..." oninput="autoResize(this)"></textarea>
+                
+                <button id="mic-btn" class="p-3.5 text-slate-400 hover:text-indigo-500 transition-colors">
+                    <i class="fa-solid fa-microphone text-lg"></i>
+                </button>
+
+                <button id="stop-btn" onclick="stopGeneration()" class="hidden p-3 mb-1.5 mr-1 text-red-500 hover:text-red-600 transition-colors">
+                    <i class="fa-solid fa-square text-lg"></i>
+                </button>
+                
+                <button id="send-btn" class="p-2.5 mb-2 mr-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 transition-all shadow-lg transform hover:scale-105">
+                    <i class="fa-solid fa-arrow-up text-sm"></i>
+                </button>
+            </div>
+            <p class="text-center text-[11px] text-slate-400 dark:text-gray-500 mt-3">Vini AI can make mistakes. Consider verifying important information.</p>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
